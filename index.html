@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>นาฬิกาสำหรับห้องสอบ</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- กล่องหลักสำหรับนาฬิกาและส่วนควบคุม -->
+    <div class="main-container">
+        
+        <!-- ส่วนแสดงผลนาฬิกา (อยู่ด้านบน) -->
+        <div class="clock-container">
+            <div id="clock-display">00:00:00</div>
+        </div>
+
+        <!-- พื้นที่สำหรับใส่ภาพหรือข้อความที่กำหนดเอง (ย้ายมาอยู่ตรงนี้ ด้านล่าง) -->
+        <div id="custom-content"></div>
+
+        <!-- ส่วนควบคุมการปรับแต่ง -->
+        <div class="controls">
+    <h3>ปรับแต่งนาฬิกาของคุณ</h3>
+    
+    <div class="control-group">
+        <label for="text-input">ใส่ข้อความ:</label>
+        <input type="text" id="text-input" placeholder="พิมพ์ข้อความที่นี่...">
+        <button id="set-text-btn">แสดงข้อความ</button>
+    </div>
+
+    <!-- ส่วนที่ให้เลือกรูปภาพถูกลบไปแล้ว -->
+
+    <div class="control-group">
+        <button id="clear-btn">ล้างการปรับแต่ง</button>
+    </div>
+</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
