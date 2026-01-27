@@ -1,6 +1,7 @@
 // ดึง Element ที่เราต้องใช้จาก HTML มาเก็บในตัวแปร
 const clockDisplay = document.getElementById('clock-display');
 const customContent = document.getElementById('custom-content');
+const textDisplayArea = document.getElementById('text-display-area'); // เพิ่มตัวแปรสำหรับกล่องข้อความ
 const textInput = document.getElementById('text-input');
 const setTextBtn = document.getElementById('set-text-btn');
 const imageInput = document.getElementById('image-input');
@@ -30,11 +31,10 @@ updateClock();
 
 // เมื่อกดปุ่ม "แสดงข้อความ"
 setTextBtn.addEventListener('click', () => {
-    const text = textInput.value; // ดึงข้อความจากช่อง input
-    if (text) {
-        customContent.innerHTML = `<span>${text}</span>`; // ใส่ข้อความลงไปใน #custom-content
-        textInput.value = ''; // ล้างช่อง input
-    }
+    const text = textInput.value;
+    // ใช้ .textContent จะปลอดภัยกว่าเมื่อแสดงผลแค่ข้อความธรรมดา
+    textDisplayArea.textContent = text; 
+    textInput.value = '';
 });
 
 // เมื่อมีการเลือกไฟล์รูปภาพ
@@ -55,6 +55,8 @@ imageInput.addEventListener('change', (event) => {
 
 // เมื่อกดปุ่ม "ล้างการปรับแต่ง"
 clearBtn.addEventListener('click', () => {
+    textDisplayArea.textContent = ''; // ล้างข้อความด้านบน
     customContent.innerHTML = ''; // ทำให้ #custom-content ว่างเปล่า
     imageInput.value = ''; // รีเซ็ตค่าของ input file (สำคัญ)
+
 });
