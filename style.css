@@ -17,6 +17,18 @@ body {
     align-items: center; /* จัดให้อยู่กลางแนวนอน */
 }
 
+/* (เพิ่ม) สไตล์สำหรับกล่องแสดงข้อความด้านบน */
+#text-display-area {
+    min-height: 40px; /* กำหนดความสูงขั้นต่ำ กัน layout กระโดด */
+    margin-bottom: 20px;
+    padding: 10px;
+    font-size: 2rem; /* ขนาดตัวอักษร */
+    color: #f1c40f; /* สีตัวอักษร (ลองเปลี่ยนสีให้เด่นขึ้น) */
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    word-wrap: break-word; /* ทำให้ตัดคำเมื่อข้อความยาวเกินไป */
+}
+
 /* กล่องนาฬิกา */
 .clock-container {
     /* position: relative;  <-- ลบบรรทัดนี้ออก */
@@ -122,6 +134,7 @@ button:hover {
 #clear-btn:hover {
     background-color: #c0392b;
 }
+
 
 
 
