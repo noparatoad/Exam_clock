@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Clock</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1vh 2vw 2vh 2vw;
+            user-select: none;
+        }
+
+        /* 1. ตัวแสดงเวลาปัจจุบันขนาดใหญ่ด้านบนสุด */
+        #clock-wrapper {
+            width: 100%;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        #clock {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 17vw; /* ปรับลดลงเล็กน้อยเพื่อให้พอดีพื้นที่แถบนับถอยหลัง */
+            line-height: 0.88;
+            font-weight: 900;
+            letter-spacing: -2px;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        }
+
+        /* 2. พื้นที่เนื้อหากลางจอ (นับถอยหลัง + แจ้งเตือน + ข้อความ) */
+        .content-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8vh;
+            flex-shrink: 0;
+            justify-content: center;
+            margin: 0.5vh 0;
+        }
+
+        /* ส่วนแสดงเวลานับถอยหลัง ที่เพิ่มเข้ามาใหม่ */
+        #countdown-timer {
+            display: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: clamp(2rem, 5vw, 4.5rem);
+            font-weight: 900;
+            color: #38bdf8;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            letter-spacing: 1px;
+        }
+
+        #alert-box {
+            display: none;
+            font-size: clamp(1rem, 2.5vw, 2.2rem);
+            font-weight: bold;
+            padding: 0.4vh 2.5vw;
+            border-radius: 50px;
+            text-align: center;
+        }
+
+        .alert-warning {
+            background-color: #f59e0b;
+            color: #000;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .alert-danger {
+            background-color: #ef4444;
+            color: #fff;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.8);
+        }
+
+        #custom-text {
+            font-size: clamp(1.1rem, 2.3vw, 2rem);
+            color: #cbd5e1;
+            text-align: center;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        /* 3. รูปภาพด้านล่าง */
+        #image-container {
+            width: 100%;
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1vh;
+        }
+
+        #display-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            border: 2px solid #334155;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* เอฟเฟกต์กระพริบเมื่อเหลือ 1 นาทีสุดท้าย */
+        .blink {
+            animation: blinker 1s linear infinite !important;
+            color: #ff3333 !important;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.8) !important;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+
+        /* 4. แผงควบคุมสำหรับผู้ใช้ทั่วไป */
+        #user-control-panel {
+            width: 100%;
+            max-width: 950px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(30, 41, 59, 0.85);
+            padding: 8px 14px;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid #334155;
+            flex-shrink: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        #user-control-panel.hidden {
+            transform: translateY(120%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .ctrl-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .ctrl-group input {
+            padding: 6px 10px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .ctrl-group input[type="text"] {
+            flex-grow: 1;
+            min-width: 250px;
+        }
+
+        /* ปุ่มมุมขวาล่าง */
+        .bottom-actions {
+            position: fixed;
+            bottom: 8px;
+            right: 8px;
+            display: flex;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+        .icon-btn:hover { opacity: 1; }
+
+        /* Modal Admin สำหรับจัดการรูปภาพ */
+        #admin-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            width: 90%;
+            max-width: 420px;
+            z-index: 1000;
+            border: 1px solid #475569;
+        }
+
+        #admin-modal h2 { margin-bottom: 12px; font-size: 1.2rem; color: #38bdf8; }
+        .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px; }
+        .btn { padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-save { background: #38bdf8; color: #000; }
+        .btn-cancel { background: #64748b; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. ส่วนแสดงเวลาปัจจุบัน (Real-time นาฬิกาหลัก แสดงตลอดเวลา) -->
+    <div id="clock-wrapper">
+        <div id="clock">00:00:00</div>
+    </div>
+
+    <!-- 2. แจ้งเตือน + นับถอยหลัง + ข้อความกำหนดเอง -->
+    <div class="content-area">
+        <!-- เวลานับถอยหลัง (แสดงเฉพาะเมื่อกำหนดเวลาหมด) -->
+        <div id="countdown-timer">เหลือเวลา 00:00:00</div>
+        
+        <div id="alert-box"></div>
+        <div id="custom-text"></div>
+    </div>
+
+    <!-- 3. ส่วนรูปภาพ -->
+    <div id="image-container">
+        <img id="display-image" src="" alt="ภาพประกอบ">
+    </div>
+
+    <!-- 4. แผงควบคุมสำหรับผู้ใช้ทั่วไป -->
+    <div id="user-control-panel">
+        <div class="ctrl-group">
+            <label for="time-picker">หมดเวลา:</label>
+            <input type="time" id="time-picker" step="1">
+            <button onclick="clearEndTime()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px;" title="ล้างเวลา">✖</button>
+        </div>
+        <div class="ctrl-group" style="flex-grow: 1;">
+            <label for="text-picker">ข้อความ:</label>
+            <input type="text" id="text-picker" placeholder="พิมพ์ข้อความที่ต้องการแสดง (เว้นว่างได้)...">
+        </div>
+    </div>
+
+    <!-- ปุ่มมุมขวาล่าง -->
+    <div class="bottom-actions">
+        <button class="icon-btn" onclick="toggleUserPanel()" title="ซ่อน/แสดง แถบตั้งค่า">👁️ แผงควบคุม</button>
+        <button class="icon-btn" onclick="openAdmin()" title="Admin เปลี่ยนรูปภาพ">⚙️ รูปภาพ (Admin)</button>
+    </div>
+
+    <!-- Modal Admin สำหรับแก้รูปภาพ -->
+    <div id="admin-modal">
+        <h2>จัดการรูปภาพ (เฉพาะ Admin)</h2>
+        <div style="margin-bottom: 15px;">
+            <label style="font-size:0.85rem; color:#94a3b8; display:block; margin-bottom:5px;">อัปโหลดรูปภาพใหม่:</label>
+            <input type="file" id="admin-image-input" accept="image/*" style="width:100%; color:#fff;">
+        </div>
+        <div>
+            <button type="button" onclick="resetToDefaultImage()" style="font-size: 0.8rem; background: #eab308; color:#000; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">🔄 คืนค่าเป็นรูปภาพเริ่มต้น</button>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-cancel" onclick="closeAdmin()">ยกเลิก</button>
+            <button class="btn btn-save" onclick="saveAdminImage()">บันทึกรูปภาพ</button>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "roomexam";
+        const DEFAULT_IMAGE_URL = "exam11.png";
+
+        let examEndTime = localStorage.getItem('exam_endTime') || '';
+        let examText = localStorage.getItem('exam_text') || '';
+        let examImage = localStorage.getItem('exam_image') || DEFAULT_IMAGE_URL;
+
+        const clockEl = document.getElementById('clock');
+        const countdownEl = document.getElementById('countdown-timer');
+        const alertBox = document.getElementById('alert-box');
+        const customTextEl = document.getElementById('custom-text');
+        const imgEl = document.getElementById('display-image');
+        const userPanel = document.getElementById('user-control-panel');
+        
+        const timeInput = document.getElementById('time-picker');
+        const textInput = document.getElementById('text-picker');
+
+        timeInput.value = examEndTime;
+        textInput.value = examText;
+
+        textInput.addEventListener('input', (e) => {
+            examText = e.target.value;
+            localStorage.setItem('exam_text', examText);
+            renderText();
+        });
+
+        timeInput.addEventListener('change', (e) => {
+            examEndTime = e.target.value;
+            localStorage.setItem('exam_endTime', examEndTime);
+            tick();
+        });
+
+        function clearEndTime() {
+            examEndTime = '';
+            timeInput.value = '';
+            localStorage.removeItem('exam_endTime');
+            countdownEl.style.display = 'none';
+            countdownEl.classList.remove('blink');
+            alertBox.style.display = 'none';
+            tick();
+        }
+
+        function renderText() {
+            if (examText.trim() !== '') {
+                customTextEl.textContent = examText;
+                customTextEl.style.display = 'block';
+            } else {
+                customTextEl.style.display = 'none';
+            }
+        }
+
+        function renderImage() {
+            imgEl.src = examImage;
+        }
+
+        function toggleUserPanel() {
+            userPanel.classList.toggle('hidden');
+        }
+
+        // Loop จัดการเวลา
+        function tick() {
+            const now = new Date();
+
+            // 1. นาฬิกาหลักด้านบน: แสดงเวลาปัจจุบันเสมอ (hh:mm:ss)
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            clockEl.textContent = `${h}:${m}:${s}`;
+
+            // 2. ถ้าไม่ได้กำหนดเวลาหมด ให้ซ่อนเวลานับถอยหลังและข้อความเตือน
+            if (!examEndTime) {
+                countdownEl.style.display = 'none';
+                countdownEl.classList.remove('blink');
+                alertBox.style.display = 'none';
+                return;
+            }
+
+            // 3. คำนวณเวลานับถอยหลัง
+            const [endH, endM, endS] = examEndTime.split(':').map(Number);
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM, endS || 0);
+
+            let diffSec = Math.floor((target - now) / 1000);
+
+            // เมื่อหมดเวลาสอบแล้ว
+            if (diffSec <= 0) {
+                countdownEl.style.display = 'none';
+                countdownEl.classList.remove('blink');
+                alertBox.textContent = "⚠️ หมดเวลาสอบแล้ว";
+                alertBox.className = "alert-danger";
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            // แสดงแถบนับถอยหลัง
+            countdownEl.style.display = 'block';
+            const hours = Math.floor(diffSec / 3600);
+            const minutes = Math.floor((diffSec % 3600) / 60);
+            const seconds = diffSec % 60;
+
+            const mStr = String(minutes).padStart(2, '0');
+            const sStr = String(seconds).padStart(2, '0');
+            
+            let timeStr = "";
+            if (hours > 0) {
+                const hStr = String(hours).padStart(2, '0');
+                timeStr = `${hStr}:${mStr}:${sStr}`;
+            } else {
+                timeStr = `${mStr}:${sStr}`;
+            }
+            countdownEl.textContent = `⏳ เหลือเวลา: ${timeStr}`;
+
+            // เงื่อนไขการแจ้งเตือน
+            if (diffSec <= 60) {
+                // เหลือ 1 นาทีสุดท้าย ให้แถบนับถอยหลังกระพริบสีแดง
+                countdownEl.classList.add('blink');
+                alertBox.textContent = `🚨 เหลือเวลาอีก ${diffSec} วินาที!`;
+                alertBox.className = "alert-danger";
+                alertBox.style.display = 'block';
+            } 
+            else if (diffSec <= 300) {
+                countdownEl.classList.remove('blink');
+                alertBox.textContent = "เหลือเวลาอีก 5 นาที";
+                alertBox.className = "alert-warning";
+                alertBox.style.display = 'block';
+            } 
+            else if (diffSec <= 900) {
+                countdownEl.classList.remove('blink');
+                alertBox.textContent = "เหลือเวลาอีก 15 นาที";
+                alertBox.className = "alert-warning";
+                alertBox.style.display = 'block';
+            } 
+            else if (diffSec <= 1800) {
+                countdownEl.classList.remove('blink');
+                alertBox.textContent = "เหลือเวลาอีก 30 นาที";
+                alertBox.className = "alert-warning";
+                alertBox.style.display = 'block';
+            } 
+            else {
+                countdownEl.classList.remove('blink');
+                alertBox.style.display = 'none';
+            }
+        }
+
+        // ระบบ Admin รูปภาพ
+        function openAdmin() {
+            const pass = prompt("กรุณากรอกรหัสผ่าน Admin เพื่อจัดการรูปภาพ:");
+            if (pass === ADMIN_PASSWORD) {
+                document.getElementById('admin-modal').style.display = 'block';
+            } else if (pass !== null) {
+                alert("รหัสผ่านไม่ถูกต้อง");
+            }
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-modal').style.display = 'none';
+            document.getElementById('admin-image-input').value = '';
+        }
+
+        function resetToDefaultImage() {
+            examImage = DEFAULT_IMAGE_URL;
+            localStorage.removeItem('exam_image');
+            renderImage();
+            closeAdmin();
+            alert('คืนค่าเป็นรูปภาพเริ่มต้นแล้ว');
+        }
+
+        function saveAdminImage() {
+            const fileInput = document.getElementById('admin-image-input');
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    examImage = e.target.result;
+                    try {
+                        localStorage.setItem('exam_image', examImage);
+                    } catch(err) {
+                        alert("ไฟล์ภาพใหญ่เกินไป ไม่สามารถบันทึกได้ กรุณาลดขนาดภาพก่อนอัปโหลด");
+                    }
+                    renderImage();
+                    closeAdmin();
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                closeAdmin();
+            }
+        }
+
+        renderText();
+        renderImage();
+        setInterval(tick, 500);
+        tick();
+    </script>
+</body>
+</html>
